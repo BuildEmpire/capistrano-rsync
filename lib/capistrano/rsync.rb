@@ -72,14 +72,16 @@ namespace :rsync do
     Kernel.system *clone
   end
 
+
   desc "Stage the repository in a local directory."
   task :stage => %w[create_stage] do
-    Dir.chdir fetch(:rsync_stage) do
-      update = %W[git fetch --quiet --all --prune]
-      Kernel.system *update
-
-      checkout = %W[git reset --hard origin/#{fetch(:branch)}]
-      Kernel.system *checkout
+    run_locally do
+      within fetch(:rsync_stage) do
+        rev = capture(:git, 'ls-remote', fetch(:repo_url), fetch(:branch)).split[0]
+        execute(:git,'fetch', '--quiet', '--all', '--prune')
+        execute(:git, 'reset', '--hard', rev)
+        execute(:git, 'clean', '-q', '-d', '-x', '-f')
+      end
     end
   end
 
