@@ -40,6 +40,15 @@ task :rsync => %w[rsync:stage] do
 end
 
 namespace :rsync do
+  task :set_current_revision do
+    run_locally do
+      within fetch(:rsync_stage) do
+        rev = capture(:git, 'rev-parse', 'HEAD')
+        set :current_revision, rev
+      end
+    end
+  end
+
   task :hook_scm do
     Rake::Task.define_task("#{scm}:check") do
       invoke "rsync:check" 
