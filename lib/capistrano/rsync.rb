@@ -11,7 +11,6 @@ rsync_cache = lambda do
   cache
 end
 
-
 namespace :load do
   task :defaults do
     set :rsync_options, []
@@ -26,9 +25,6 @@ namespace :load do
     set :rsync_cache, "shared/deploy"
   end
 end
-
-Rake::Task["deploy:check"].enhance ["rsync:hook_scm"]
-Rake::Task["deploy:updating"].enhance ["rsync:hook_scm"]
 
 desc "Stage and rsync to the server (or its cache)."
 task :rsync => %w[rsync:stage] do
@@ -54,16 +50,6 @@ namespace :rsync do
     end
   end
 
-  task :hook_scm do
-    Rake::Task.define_task("#{scm}:check") do
-      invoke "rsync:check" 
-    end
-
-    Rake::Task.define_task("#{scm}:create_release") do
-      invoke "rsync:release" 
-    end
-  end
-
   task :check do
     # Everything's a-okay inherently!
   end
@@ -77,29 +63,24 @@ namespace :rsync do
     Kernel.system *clone
   end
 
-
   desc "Stage the repository in a local directory."
   task :stage => %w[create_stage] do
     run_locally do
       within fetch(:rsync_stage) do
         rev = capture(:git, 'ls-remote', fetch(:repo_url), fetch(:branch)).split[0]
-        execute(:git,'fetch', '--quiet', '--all', '--prune')
+        execute(:git, 'fetch', '--quiet', '--all', '--prune')
         execute(:git, 'reset', '--hard', rev)
-        execute(:git, 'clean', '-q', '-d', '-x', '-f')
+        execute(:git, 'clean', '-q', '-d', '-f')
       end
     end
   end
 
   desc "Copy the code to the releases directory."
-  task :release => %w[rsync] do
+  task :create_release => %w[rsync] do
     # Skip copying if we've already synced straight to the release directory.
     next if !fetch(:rsync_cache)
 
     copy = %(#{fetch(:rsync_copy)} "#{rsync_cache.call}/" "#{release_path}/")
     on roles(:all).each do execute copy end
   end
-
-  # Matches the naming scheme of git tasks.
-  # Plus was part of the public API in Capistrano::Rsync <= v0.2.1.
-  task :create_release => %w[release]
 end
