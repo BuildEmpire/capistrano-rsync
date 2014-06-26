@@ -35,8 +35,9 @@ task :rsync => %w[rsync:stage] do
     rsync.concat fetch(:rsync_options)
     rsync << fetch(:rsync_stage) + "/"
     rsync << "#{user}#{role.hostname}:#{rsync_cache.call || release_path}"
-
-    Kernel.system *rsync
+    run_locally do
+      execute *rsync
+    end
   end
 end
 
@@ -57,10 +58,9 @@ namespace :rsync do
   task :create_stage do
     next if File.directory?(fetch(:rsync_stage))
 
-    clone = %W[git clone]
-    clone << fetch(:repo_url, ".")
-    clone << fetch(:rsync_stage)
-    Kernel.system *clone
+    run_locally do
+      execute :git, 'clone', fetch(:repo_url, "."), fetch(:rsync_stage)
+    end
   end
 
   desc "Stage the repository in a local directory."
