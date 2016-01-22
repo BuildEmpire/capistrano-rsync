@@ -79,6 +79,8 @@ namespace :rsync do
     next if !fetch(:rsync_cache)
 
     copy = %(#{fetch(:rsync_copy)} "#{rsync_cache.call}/" "#{release_path}/")
-    on roles(:all).each do execute copy end
+    on roles(:all) do |host|
+      execute copy
+    end
   end
 end
