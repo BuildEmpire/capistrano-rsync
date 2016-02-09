@@ -26,7 +26,7 @@ end
 
 desc "Stage and rsync to the server (or its cache)."
 task :rsync => %w[rsync:stage] do
-  roles(:all).each do |role|
+  on roles(:all) do |role|
     user = role.user + "@" if !role.user.nil?
 
     rsync = %w[rsync]
