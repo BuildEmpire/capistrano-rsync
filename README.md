@@ -38,7 +38,7 @@ require "capistrano/rsync"
 
 Set some `rsync_options` to your liking:
 ```ruby
-set :rsync_options, "--recursive --delete --delete-excluded --exclude .git*"
+set :rsync_options, %w[--recursive --delete --delete-excluded --exclude .git*]
 ```
 
 And after setting regular Capistrano options, deploy as usual!
@@ -62,7 +62,12 @@ After that, Capistrano takes over and runs its usual tasks and symlinking.
 If you don't want to deploy everything you've committed to your repository, pass
 some `--exclude` options to Rsync:
 ```ruby
-set :rsync_options, "--recursive --delete --delete-excluded --exclude .git* --exclude /config/database.yml --exclude /test/***"
+set :rsync_options, %w[
+  --recursive --delete --delete-excluded
+  --exclude .git*
+  --exclude /config/database.yml
+  --exclude /test/***
+]
 ```
 
 ### Precompile assets before deploy
@@ -93,7 +98,7 @@ repo_url      | `.` | The path or URL to a Git repository to clone from.
 branch        | `master` | The Git branch to checkout.  
 rsync_stage   | `tmp/deploy` | Path where to clone your repository for staging, checkouting and rsyncing. Can be both relative or absolute.
 rsync_cache   | `shared/deploy` | Path where to cache your repository on the server to avoid rsyncing from scratch each time. Can be both relative or absolute.<br> Set to `nil` if you want to disable the cache.
-rsync_options | `` | String of options to pass to `rsync`.  
+rsync_options | `[]` | Array of options to pass to `rsync`.  
 
 
 License
